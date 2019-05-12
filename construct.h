@@ -42,7 +42,7 @@ namespace mySTL{
         __destroy_aux(first,last,trivial_destructor());
     }
 
-    //提取迭代器类型，交给__destroy
+    //提取迭代器指向的类型，交给__destroy
     template <typename ForwardIterator>
     inline void destroy(ForwardIterator first,ForwardIterator last){
         __destroy(first,last,value_type(first));

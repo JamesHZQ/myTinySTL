@@ -3,7 +3,6 @@
 //
 
 #include "alloc.h"
-#include "construct.h"
 
 #include <cassert>
 #include <new>

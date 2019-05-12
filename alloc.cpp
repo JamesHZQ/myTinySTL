@@ -152,7 +152,7 @@ namespace mySTL{
                         //将内存池的上下边界地址设为相应区块的首尾位置（此区块大小一般>bytes）
                         start_free = (char*)p;
                         end_free = start_free + i;
-                        //改变内存池后再次调用chunk_alloc，能分配一个就推出了
+                        //改变内存池后再次调用chunk_alloc，能分配一个就退出了
                         return chunk_alloc(bytes,nobjs);
                     }
                 }
