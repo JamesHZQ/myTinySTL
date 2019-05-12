@@ -4,6 +4,8 @@ project(myTinySTL)
 set(CMAKE_CXX_STANDARD 14)
 include_directories(./)
 
-add_executable(STL_test alloc.cpp test/testVector.cpp)
+add_executable(STL_test1 alloc.cpp test/testVector.cpp)
+
+add_executable(STL_test2 alloc.cpp test/testList.cpp)
 
 #target_link_libraries(STL_test pthread)
