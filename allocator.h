@@ -1,6 +1,8 @@
 //
 // Created by john on 4/29/19.
 //
+#ifndef MYTINYSTL_ALLOCATOR_H
+#define MYTINYSTL_ALLOCATOR_H
 
 #include "alloc.h"
 
@@ -28,3 +30,4 @@ namespace mySTL {
         { Alloc::deallocate(p, sizeof (T));}
     };
 }
+#endif
