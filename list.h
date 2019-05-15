@@ -55,6 +55,18 @@ namespace mySTL {
 
         //产生一个空链表
         list() { empty_initialize();}
+        list(size_type n, const T& value) { fill_initialize(n, value); }
+        list(int n, const T& value) { fill_initialize(n, value); }
+        list(long n, const T& value) { fill_initialize(n, value); }
+        explicit list(size_type n) { fill_initialize(n, T()); }
+        template <class InputIterator>
+        list(InputIterator first, InputIterator last) {
+            range_initialize(first, last);
+        }
+        list(const list<T, Alloc>& x) {
+            range_initialize(x.begin(), x.end());
+        }
+
         ~list() {
             clear();
             //销毁空（哨兵）节点
@@ -135,7 +147,18 @@ namespace mySTL {
             //返回指向插入节点的迭代器
             return tmp;
         }
-
+        template <class InputIterator>
+        void insert(iterator position, InputIterator first, InputIterator last){
+            for ( ; first != last; ++first)
+                insert(position, *first);
+        }
+        void insert(iterator position, size_type n, const T& x){
+            for ( ; n > 0; --n)
+                insert(position, x);
+        }
+        void insert(iterator pos, int n, const T& x) {
+            insert(pos, (size_type)n, x);
+        }
         //将[first,last)之间的元素移动到position之前
         void transfer(iterator position, iterator first, iterator last) {
             if(first==last)
@@ -219,7 +242,7 @@ namespace mySTL {
             this->node = tmp;
         }
 
-        //sort list不能使用STL的sort，应为他的迭代器是不是ramdon的
+        //sort list不能使用STL的sort，因为迭代器不是random的
         //这里使用的是冒泡排序
         void sort() {
             if(node->next == node||node->next->next == node)
@@ -249,6 +272,29 @@ namespace mySTL {
             node = get_node();
             node->next = node;
             node->prev = node;
+        }
+
+        void fill_initialize(size_type n, const T& value) {
+            empty_initialize();
+            try {
+                    insert(begin(), n, value);
+            }catch(...){
+                clear();
+                put_node(node);
+                throw;
+            }
+        }
+
+        template <class InputIterator>
+        void range_initialize(InputIterator first, InputIterator last) {
+            empty_initialize();
+            try{
+                insert(begin(), first, last);
+            }catch(...){
+                clear();
+                put_node(node);
+                throw;
+            }
         }
     };
 }
