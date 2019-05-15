@@ -32,5 +32,11 @@ int main(){
     for(auto it = l.begin();it!=l.end();++it){
         std::cout<<*it<<" ";
     }
+    std::cout<<"\n";
+    int myints[]= {10,20,30,40,50};
+    list<int> l2(myints,myints+5);
+    for(auto it = l2.begin();it!=l2.end();++it){
+        std::cout<<*it<<" ";
+    }
     return 0;
 }
