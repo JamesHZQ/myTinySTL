@@ -165,7 +165,7 @@ namespace mySTL {
             }
         }
 
-        //set相关的函数
+        //set、map相关的函数
         iterator find(const key_type& x);
         const_iterator find(const key_type& x) const;
         size_type count(const key_type& x) const;
