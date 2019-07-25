@@ -12,4 +12,6 @@ add_executable(STL_test3 alloc.cpp test/testSet.cpp)
 
 add_executable(STL_test4 alloc.cpp test/testMap.cpp)
 
+add_executable(STL_test5 alloc.cpp test/testMem.cpp)
+
 #target_link_libraries(STL_test pthread)
