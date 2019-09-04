@@ -18,13 +18,24 @@ namespace mySTL {
                 delete ptr;
         }
     };
+/**
+ *上一版本引用计数存在线程安全的问题（先对引用计数“-1”，再判断引用计数是否减为零
+ *若为零的话，销毁指向的对象。在多线程中，假设有两个线程AB各自的shared_ptr指向同
+ *一个对象，线程A对引用计数“-1”后，此时发生了线程切换，线程B的shared_ptr也析构了
+ *引用计数此时减为零，于是销毁指向的对象，之后由线程B切换回线程A后，会发生core dump）
+
+ *所以为了解决这一问题，选择使用__sync_getch_and_add函数来更新并判断引用计数，
+ *__sync_add_and_fetch使引用计数“+1”或“-1”并返回此次更新后的引用计数，这两个操作
+ *之间，不会发生线程切换，所以不会出现上述的线程安全的问题。
+*/
 
     template<typename T>
     struct ref_t{
         using deleter_type = std::function<void(T*)>;
-        std::atomic<size_t> ncount_;   //使用原子量，确保引用计数的线程安全性
-        T*                  data_;
-        deleter_type        deleter_;
+        //std::atomic<size_t> ncount_;   //使用原子量，确保引用计数的线程安全性
+        volatile size_t ncount_;
+        T*              data_;
+        deleter_type    deleter_;
         
         explicit ref_t(T*p=nullptr,deleter_type pfunc = deleter_type(_default_delete<T>()))
             : ncount_(0),data_(p),deleter_(pfunc)
@@ -40,7 +51,7 @@ namespace mySTL {
             if(ncount_ == 0)
                 deleter_(data_);
         }
-        size_t count()const{ return ncount_.load(); }
+        size_t count()const{ return ncount_; }
         T* get_data()const{ return data_; }
         //前置
         ref_t& operator++(){
@@ -63,6 +74,12 @@ namespace mySTL {
             auto t = *this;
             --*this;
             return t;
+        }
+        size_t decrement(){
+            return __sync_add_and_fetch(&ncount_,-1);
+        }
+        size_t increment(){
+            return __sync_add_and_fetch(&ncount_,1);
         }
     };
     template<typename T>
@@ -234,10 +251,17 @@ namespace mySTL {
         //ref_的析构函数会销毁真正的对象
         void decrease_ref(){
             if(ref_->get_data()){
-                --(*ref_);
-                if(use_count()==0)
+                if(ref_->decrement()==0)
                     delete ref_;
             }
+            //*************bugfix*************************
+            //之前的代码忽视了对空指针的处理，如果一个shared_ptr对象是一个“空指针”，在它析构或被赋值
+            //的时候，它的ref_成员并没有被销毁。导致使用valgrind测试的时候发现有少量的内存泄露
+            //下面的代码表示，如果一个shared_ptr对象是一个“空指针”，在它析构或被赋值销毁ref_成员
+            else{
+                delete ref_;
+            }
+            //*************bugfix*************************
         }
         //拷贝时改变指针指向，并递增新的ref_的引用计数
         //（同时要调用decrease_ref递减原来的ref_的引用计数）
