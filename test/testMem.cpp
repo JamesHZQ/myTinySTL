@@ -13,5 +13,11 @@ int main(){
         std::cout<<"alive:"<<*fooo<<std::endl;
     else
         std::cout<<"dead"<<std::endl;
+    shared_ptr<int> a;
+    shared_ptr<int> b(a);
+    std::cout<<a.use_count()<<std::endl;
+    shared_ptr<int> c(new int(2));
+    b=c;
+    std::cout<<c.use_count()<<std::endl;
     return 0;
 }

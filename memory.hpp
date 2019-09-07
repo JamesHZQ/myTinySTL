@@ -220,7 +220,10 @@ namespace mySTL {
     public:
         typedef T element_type;
 
-        explicit shared_ptr(T* p=nullptr):ref_(new ref_t<T>(p)){}
+        explicit shared_ptr(T* p=nullptr){
+            if(p!=nullptr)
+                ref_=(new ref_t<T>(p));
+        }
         template<typename D>
         shared_ptr(T* p, D del):ref_(new ref_t<T>(p,del)){}
         shared_ptr(const shared_ptr& sp){
@@ -241,35 +244,28 @@ namespace mySTL {
         element_type& operator*(){ return *(get()); }
         element_type* operator->(){ return get(); }
 
-        const element_type* get()const{ return ref_->get_data();} 
-        element_type* get(){ return ref_->get_data(); }
-        size_t use_count()const{ return ref_->count(); }
+        const element_type* get()const{ return ref_==nullptr?nullptr:ref_->get_data();} 
+        element_type* get(){ return ref_==nullptr?nullptr:ref_->get_data(); }
+        size_t use_count()const{ return ref_==nullptr?0:ref_->count(); }
 
         operator bool()const{ return get()!=nullptr; }
     private:
         //递减引用计数，并在引用计数减到0时销毁ref_，
         //ref_的析构函数会销毁真正的对象
         void decrease_ref(){
-            if(ref_->get_data()){
+            if(ref_!=nullptr){
                 if(ref_->decrement()==0)
                     delete ref_;
             }
-            //*************bugfix*************************
-            //之前的代码忽视了对空指针的处理，如果一个shared_ptr对象是一个“空指针”，在它析构或被赋值
-            //的时候，它的ref_成员并没有被销毁。导致使用valgrind测试的时候发现有少量的内存泄露
-            //下面的代码表示，如果一个shared_ptr对象是一个“空指针”，在它析构或被赋值销毁ref_成员
-            else{
-                delete ref_;
-            }
-            //*************bugfix*************************
         }
         //拷贝时改变指针指向，并递增新的ref_的引用计数
         //（同时要调用decrease_ref递减原来的ref_的引用计数）
         void copy_ref(ref_t<T>* r){
             ref_ = r;
-            ++(*ref_);
+            if(ref_!=nullptr)
+                ++(*ref_);
         }
-        ref_t<T> *ref_;
+        ref_t<T> *ref_=nullptr;
     };
     template<typename T1, typename T2>
     bool operator==(const shared_ptr<T1>& lhs, const shared_ptr<T2>& rhs){
